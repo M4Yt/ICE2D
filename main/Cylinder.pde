@@ -34,6 +34,6 @@ class Cylinder {
   }
   
   float pistonY(float time) {
-    return sqrt(pow(crankRadius, 2) * pow(-sin(time + crankOffset), 2) + pow(stroke, 2)) + crankRadius * -sin(time + crankOffset);
+    return crankRadius*-sin(time + crankOffset) + sqrt(pow(stroke, 2) - pow(crankRadius, 2)*pow(-cos(time + crankOffset), 2));
   }
 }
