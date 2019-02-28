@@ -16,53 +16,57 @@
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-float bore = 86;
-float stroke = 215;
-float crankRadius = 43;
 ArrayList<Cylinder> engine = new ArrayList<Cylinder>();
-float engineSpeed = 800;
+float bore = 86;
+float stroke = 86;
+float rpm = 30;
+// 1 rotation is 2Pi
+// 1 minute at 60fps is 3600 frames
+// So increment each frame with:
+float rpmIncrement = TWO_PI/3600;
 float time = 0;
 // crank layouts
+float[] i3 = {0, TWO_PI/3, TWO_PI*2/3};
 float[] i4 = {0, PI, PI, 0};
+float[] i5 = {0, radians(216), radians(144), radians(72), radians(288)};
 float[] i6 = {0, TWO_PI/3, TWO_PI*2/3, TWO_PI*2/3, TWO_PI/3, 0};
+// gif stuff
+int totalFrames = 60;
+int frameCounter = 0;
+boolean record = false;
 
 void setup() {
-  size(1200, 800);
-  for (float x : i6) {
-    Cylinder c = new Cylinder(bore, stroke, x, crankRadius);
+  size(1200, 600);
+  frameRate(60);
+  for (float x : i5) {
+    Cylinder c = new Cylinder(bore, stroke, x);
     engine.add(c);
   }
 }
 
-void draw() {
+void draw() {  
+  render();
+  
+  if (record) {
+    saveFrame("output/gif-"+nf(frameCounter, 3)+".png");
+    frameCounter++;
+    if (frameCounter == totalFrames) {
+      exit();
+    }
+  }
+}
+
+void render() {
   background(0);
   stroke(255);
-  translate(200, 500);
-  
+  noFill();
+  translate(150, 300);
+  engine.get(0).drawFront(time);
+  translate(100, 0);
   for (Cylinder c : engine) {
     translate(100, 0);
-    float crankY = c.crankY(time);
-    float pistonY = -c.pistonY(time);
-    line(0, crankY, 0, pistonY);
-    fill(255);
-    // connect first bit
-    line(-bore/2 - 7, 0, -bore/2, 0);
-    // start crank
-    line(-bore/2, 0, -bore/4, 0);
-    // crank to rod
-    line(-bore/4, 0, -bore/4, crankY);
-    // rod
-    line(-bore/4, crankY, bore/4, crankY);
-    // rod to crank
-    line(bore/4, crankY, bore/4, 0);
-    // end crank
-    line(bore/4, 0, bore/2, 0);
-    // connect last bit
-    line(bore/2, 0, bore/2 + 7, 0);
-    ellipse(0, c.crankY(time), 8, 8);
-    noFill();
-    rect(-bore/2, pistonY - bore/2, bore, bore);
+    c.drawSide(time);
   }
   
-  time += engineSpeed/15000;
+  time += rpm*rpmIncrement;
 }
